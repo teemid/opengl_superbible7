@@ -1,7 +1,6 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
-#include <cmath>
 
 #include <windows.h>
 #include <Wingdi.h>
@@ -9,7 +8,7 @@
 
 #include "glfunctions.h"
 #include "WGLExtensions.h"
-
+#include "framework.h"
 
 static PFNWGLGETEXTENSIONSSTRINGARB  wglGetExtensionsStringARB;
 static PFNWGLCREATECONTEXTATTRIBSARB wglCreateContextAttribsARB;
@@ -41,19 +40,7 @@ static OpenGLInfo gGLInfo = { 4, 3 };
 
 static bool32_t gRunning = false;
 
-static double currTime;
-
-
-static void Render (double currentTime)
-{
-    const GLfloat color[] = {
-        (float)sin(currentTime) * 0.5f + 0.5f,
-        (float)cos(currentTime) * 0.5f + 0.5f,
-        0.0f, 1.0f
-    };
-
-    glClearBufferfv(GL_COLOR, 0, color);
-}
+static double currentTime;
 
 
 LRESULT CALLBACK Win32WindowProc (HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
@@ -309,7 +296,7 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         return 1;
     }
 
-    currTime = 0.0f;
+    currentTime = 0.0f;
 
     LARGE_INTEGER startTime, endTime, elapsed;
     LARGE_INTEGER frequency;
@@ -318,6 +305,8 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
     QueryPerformanceCounter(&startTime);
 
     gRunning = true;
+
+    Init();
 
     while (gRunning)
     {
@@ -347,9 +336,9 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
 
         elapsed.QuadPart = endTime.QuadPart - startTime.QuadPart;
 
-        currTime = elapsed.QuadPart * (1.0 / (double)frequency.QuadPart);
+        currentTime = elapsed.QuadPart * (1.0 / (double)frequency.QuadPart);
 
-        Render(currTime);
+        Render(currentTime);
 
         SwapBuffers(deviceContext);
     }

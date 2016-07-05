@@ -1,5 +1,5 @@
-#ifndef CAPSTAN_WGL_EXTENSIONS_H
-#define CAPSTAN_WGL_EXTENSIONS_H
+#ifndef SBGL_WGL_EXTENSIONS_H
+#define SBGL_WGL_EXTENSIONS_H
 
 /*
     Start WGL_create_context.
