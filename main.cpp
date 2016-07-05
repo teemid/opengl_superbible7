@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
+#include <cmath>
 
 #include <windows.h>
 #include <Wingdi.h>
@@ -40,12 +41,18 @@ static OpenGLInfo gGLInfo = { 4, 3 };
 
 static bool32_t gRunning = false;
 
+static double currTime;
 
-static void Render ()
+
+static void Render (double currentTime)
 {
-    static const GLfloat red[] = { 1.0f, 0.0f, 0.0f, 1.0f };
+    const GLfloat color[] = {
+        (float)sin(currentTime) * 0.5f + 0.5f,
+        (float)cos(currentTime) * 0.5f + 0.5f,
+        0.0f, 1.0f
+    };
 
-    glClearBufferfv(GL_COLOR, 0, red);
+    glClearBufferfv(GL_COLOR, 0, color);
 }
 
 
@@ -183,8 +190,8 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
     // NOTE (Emil): Get all the wgl extensions supported by the current device.
     const char * extensions = wglGetExtensionsStringARB(deviceContext);
 
-    const char * cc = strstr(extensions, "WGL_ARB_create_context");
-    const char * ccp = strstr(extensions, "WGL_ARB_create_context_profile");
+    const char * cc         = strstr(extensions, "WGL_ARB_create_context");
+    const char * ccp        = strstr(extensions, "WGL_ARB_create_context_profile");
     const char * robustness = strstr(extensions, "WGL_ARB_create_context_robustness");
 
     if (!(cc && ccp))
@@ -302,6 +309,14 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         return 1;
     }
 
+    currTime = 0.0f;
+
+    LARGE_INTEGER startTime, endTime, elapsed;
+    LARGE_INTEGER frequency;
+
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&startTime);
+
     gRunning = true;
 
     while (gRunning)
@@ -328,7 +343,13 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
             }
         }
 
-        Render();
+        QueryPerformanceCounter(&endTime);
+
+        elapsed.QuadPart = endTime.QuadPart - startTime.QuadPart;
+
+        currTime = elapsed.QuadPart * (1.0 / (double)frequency.QuadPart);
+
+        Render(currTime);
 
         SwapBuffers(deviceContext);
     }

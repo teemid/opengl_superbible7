@@ -1,6 +1,6 @@
 @echo off
 
-SET COMPILER_OPTIONS=/nologo /c /Od /MTd /Fdbuild\ /Fobuild\ /Zi /W3
+SET COMPILER_OPTIONS=/nologo /c /Od /EHsc /MTd /Fdbuild\ /Fobuild\ /Zi /W3
 SET INCLUDE_DIR=include
 SET LIB_FILES=user32.lib gdi32.lib opengl32.lib
 SET LINKER_FLAGS=/NOLOGO /OUT:openglsb.exe
