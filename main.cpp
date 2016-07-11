@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cstdint>
 #include <cstring>
 #include <cstdio>
@@ -5,13 +6,11 @@
 #include <windows.h>
 #include <Wingdi.h>
 
+#include "chapters.h"
 
-#include "glfunctions.h"
-#include "WGLExtensions.h"
-#include "framework.h"
 
-static PFNWGLGETEXTENSIONSSTRINGARB  wglGetExtensionsStringARB;
-static PFNWGLCREATECONTEXTATTRIBSARB wglCreateContextAttribsARB;
+static PFNWGLGETEXTENSIONSSTRINGARBPROC  wglGetExtensionsStringARB;
+static PFNWGLCREATECONTEXTATTRIBSARBPROC wglCreateContextAttribsARB;
 
 
 typedef uint32_t bool32_t;
@@ -36,33 +35,120 @@ static WindowInfo gInfo = {
     600
 };
 
-static OpenGLInfo gGLInfo = { 4, 3 };
+static OpenGLInfo gGLInfo = { 4, 5 };
 
 static bool32_t gRunning = false;
 
 static double currentTime;
 
+static HWND windowHandle;
+static HDC deviceContext;
 
-LRESULT CALLBACK Win32WindowProc (HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
+static int  Win32CreateWindow (HINSTANCE instance);
+static void Win32AttachConsole (void);
+static int  Win32CreateOpenGLContext (void);
+static LRESULT CALLBACK Win32WindowProc (HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
+
+
+#define CHAPTER 3
+#define VERSION 7
+
+
+SET_FUNCTIONS(
+    CHAPTER_INIT(CHAPTER, VERSION),
+    CHAPTER_RENDER(CHAPTER, VERSION),
+    CHAPTER_SHUTDOWN(CHAPTER, VERSION)
+);
+
+
+int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    switch (message)
+    assert(Win32CreateWindow(instance) == 0);
+    assert(Win32CreateOpenGLContext() == 0);
+
+#if 1
+    Win32AttachConsole();
+#endif
+
+    LoadGLProcs();
+
+    int major;
+    int minor;
+
+    GetCurrentGLVersion(&major, &minor);
+
+    if (major < 3)
     {
-        case WM_DESTROY:
-        case WM_QUIT:
-        case WM_CLOSE: {
-            gRunning = false;
-        } break;
-        default:
-        {
-            return DefWindowProc(windowHandle, message, wParam, lParam);
-        }
+        OutputDebugStringA("OpenGL major version earlier than 3.\n");
+
+        return 1;
     }
+
+    printf("OpenGL version: %d.%d\n\n", major, minor);
+
+    int extension_count = GetExtensionCount();
+
+    printf("Number of OpenGL extensions available: %d\n\n", extension_count);
+
+    for (int i = 0; i < extension_count; i++)
+    {
+        printf("%s\n", (char *)glGetStringi(GL_EXTENSIONS, i));
+    }
+
+    currentTime = 0.0f;
+
+    LARGE_INTEGER startTime, endTime, elapsed;
+    LARGE_INTEGER frequency;
+
+    QueryPerformanceFrequency(&frequency);
+    QueryPerformanceCounter(&startTime);
+
+    gRunning = true;
+
+    Init();
+
+    while (gRunning)
+    {
+        MSG message;
+
+        while (PeekMessage(&message, windowHandle, 0, 0, PM_REMOVE))
+        {
+            switch (message.message)
+            {
+                case WM_KEYDOWN:
+                {
+                    if (message.wParam == VK_ESCAPE)
+                    {
+                        PostQuitMessage(0);
+                        gRunning = false;
+                    }
+                } break;
+                default:
+                {
+                    TranslateMessage(&message);
+                    DispatchMessage(&message);
+                } break;
+            }
+        }
+
+        QueryPerformanceCounter(&endTime);
+
+        elapsed.QuadPart = endTime.QuadPart - startTime.QuadPart;
+
+        currentTime = elapsed.QuadPart * (1.0 / (double)frequency.QuadPart);
+
+        Render(currentTime);
+
+        SwapBuffers(deviceContext);
+    }
+
+    Shutdown();
 
     return 0;
 }
 
 
-int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine, int nCmdShow)
+static int Win32CreateWindow(HINSTANCE instance)
 {
     WNDCLASSEX w = {};
     w.cbSize = sizeof(WNDCLASSEX);
@@ -81,7 +167,7 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         return 1;
     }
 
-    HWND windowHandle = CreateWindow(
+    windowHandle = CreateWindow(
         "OpenGL Superbible Class",
         gInfo.title,
         WS_OVERLAPPEDWINDOW | WS_VISIBLE,
@@ -101,7 +187,12 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         return 1;
     }
 
-#if 0
+    return 0;
+}
+
+
+static void Win32AttachConsole (void)
+{
     BOOL console = AllocConsole();
 
     if (!console)
@@ -114,9 +205,12 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         freopen("CON", "w", stdout);
         SetForegroundWindow(windowHandle);
     }
-#endif
+}
 
-    auto deviceContext = GetDC(windowHandle);
+
+static int Win32CreateOpenGLContext (void)
+{
+    deviceContext = GetDC(windowHandle);
 
     PIXELFORMATDESCRIPTOR desired = {};
     desired.nSize        = sizeof(PIXELFORMATDESCRIPTOR);
@@ -165,7 +259,7 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
 
     wglMakeCurrent(deviceContext, renderContext);
 
-    wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARB)wglGetProcAddress("wglGetExtensionsStringARB");
+    wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARBPROC)wglGetProcAddress("wglGetExtensionsStringARB");
 
     if (!wglGetExtensionsStringARB)
     {
@@ -195,7 +289,7 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         return 1;
     }
 
-    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARB)wglGetProcAddress("wglCreateContextAttribsARB");
+    wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
 
     if (!wglCreateContextAttribsARB)
     {
@@ -259,88 +353,23 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
         return 1;
     }
 
-#if 0
-    wglGetExtensionsStringARB = (PFNWGLGETEXTENSIONSSTRINGARB)wglGetProcAddress("wglGetExtensionsStringARB");
+    return 0;
+}
 
-    if (!wglGetExtensionsStringARB)
+
+static LRESULT CALLBACK Win32WindowProc (HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam)
+{
+    switch (message)
     {
-        OutputDebugStringA("Failed to reacquire wglGetExtensionsStringARB");
-
-        return 1;
-    }
-
-    const char * wglExtensions = wglGetExtensionsStringARB(deviceContext);
-
-    OutputDebugStringA(wglExtensions);
-#endif
-
-    LoadGLProcs();
-
-    if (!glGetIntegerv)
-    {
-        OutputDebugStringA("Could not find glGetIntegerv.\n");
-
-        return 1;
-    }
-
-    int32_t major;
-    int32_t minor;
-
-    glGetIntegerv(GL_MAJOR_VERSION, &major);
-    glGetIntegerv(GL_MINOR_VERSION, &minor);
-
-    if (major < 3)
-    {
-        OutputDebugStringA("OpenGL major version earlier than 3.\n");
-
-        return 1;
-    }
-
-    currentTime = 0.0f;
-
-    LARGE_INTEGER startTime, endTime, elapsed;
-    LARGE_INTEGER frequency;
-
-    QueryPerformanceFrequency(&frequency);
-    QueryPerformanceCounter(&startTime);
-
-    gRunning = true;
-
-    Init();
-
-    while (gRunning)
-    {
-        MSG message;
-
-        while (PeekMessage(&message, windowHandle, 0, 0, PM_REMOVE))
+        case WM_DESTROY:
+        case WM_QUIT:
+        case WM_CLOSE: {
+            gRunning = false;
+        } break;
+        default:
         {
-            switch (message.message)
-            {
-                case WM_KEYDOWN:
-                {
-                    if (message.wParam == VK_ESCAPE)
-                    {
-                        PostQuitMessage(0);
-                        gRunning = false;
-                    }
-                } break;
-                default:
-                {
-                    TranslateMessage(&message);
-                    DispatchMessage(&message);
-                } break;
-            }
+            return DefWindowProc(windowHandle, message, wParam, lParam);
         }
-
-        QueryPerformanceCounter(&endTime);
-
-        elapsed.QuadPart = endTime.QuadPart - startTime.QuadPart;
-
-        currentTime = elapsed.QuadPart * (1.0 / (double)frequency.QuadPart);
-
-        Render(currentTime);
-
-        SwapBuffers(deviceContext);
     }
 
     return 0;

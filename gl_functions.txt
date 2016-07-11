@@ -1,7 +1,11 @@
 glGetIntegerv
 glClearBufferfv
 glCreateShader
+glGetShaderiv
+glGetShaderInfoLog
 glCreateProgram
+glGetProgramiv
+glGetProgramInfoLog
 glShaderSource
 glCompileShader
 glAttachShader
@@ -20,3 +24,4 @@ glPolygonMode
 glViewport
 glDepthRange
 glFrontFace
+glGetStringi
