@@ -7,6 +7,7 @@
 #include <Wingdi.h>
 
 #include "chapters.h"
+#include "vmath.h"
 
 
 static PFNWGLGETEXTENSIONSSTRINGARBPROC  wglGetExtensionsStringARB;
@@ -69,6 +70,8 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
 #if 1
     Win32AttachConsole();
 #endif
+
+    Vector4f v = { 1.0f, 0.0f, 0.0f, 0.0f };
 
     LoadGLProcs();
 
