@@ -51,8 +51,8 @@ static int  Win32CreateOpenGLContext (void);
 static LRESULT CALLBACK Win32WindowProc (HWND windowHandle, UINT message, WPARAM wParam, LPARAM lParam);
 
 
-#define CHAPTER 3
-#define VERSION 7
+#define CHAPTER 5
+#define VERSION 4
 
 
 SET_FUNCTIONS(
@@ -70,8 +70,6 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
 #if 1
     Win32AttachConsole();
 #endif
-
-    Vector4f v = { 1.0f, 0.0f, 0.0f, 0.0f };
 
     LoadGLProcs();
 
@@ -93,10 +91,10 @@ int WINAPI WinMain (HINSTANCE instance, HINSTANCE prevInstance, LPSTR lpCmdLine,
 
     printf("Number of OpenGL extensions available: %d\n\n", extension_count);
 
-    for (int i = 0; i < extension_count; i++)
-    {
-        printf("%s\n", (char *)glGetStringi(GL_EXTENSIONS, i));
-    }
+    // for (int i = 0; i < extension_count; i++)
+    // {
+    //     printf("%s\n", (char *)glGetStringi(GL_EXTENSIONS, i));
+    // }
 
     currentTime = 0.0f;
 
@@ -288,8 +286,6 @@ static int Win32CreateOpenGLContext (void)
     if (!robustness)
     {
         OutputDebugStringA("WGL_ARB_create_context_robustness not available.\n");
-
-        return 1;
     }
 
     wglCreateContextAttribsARB = (PFNWGLCREATECONTEXTATTRIBSARBPROC)wglGetProcAddress("wglCreateContextAttribsARB");
@@ -331,29 +327,58 @@ static int Win32CreateOpenGLContext (void)
         return 1;
     }
 
-    int32_t attributes[] = {
-        WGL_CONTEXT_MAJOR_VERSION_ARB, gGLInfo.major,
-        WGL_CONTEXT_MINOR_VERSION_ARB, gGLInfo.minor,
-        WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-        WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB | WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB,
-        WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB,
-        0, 0
-    };
-
-    renderContext = wglCreateContextAttribsARB(deviceContext, 0, attributes);
-
-    if (!renderContext)
+    if (robustness)
     {
-        OutputDebugStringA("OpenGL context creation failed.\n");
+        int32_t attributes[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB, gGLInfo.major,
+            WGL_CONTEXT_MINOR_VERSION_ARB, gGLInfo.minor,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB | WGL_CONTEXT_ROBUST_ACCESS_BIT_ARB,
+            WGL_CONTEXT_RESET_NOTIFICATION_STRATEGY_ARB, WGL_LOSE_CONTEXT_ON_RESET_ARB,
+            0, 0
+        };
 
-        return 1;
+            renderContext = wglCreateContextAttribsARB(deviceContext, 0, attributes);
+
+        if (!renderContext)
+        {
+            OutputDebugStringA("OpenGL context creation failed.\n");
+
+            return 1;
+        }
+
+        if (!wglMakeCurrent(deviceContext, renderContext))
+        {
+            OutputDebugStringA("Failed to make the render context current.\n");
+
+            return 1;
+        }
     }
-
-    if (!wglMakeCurrent(deviceContext, renderContext))
+    else
     {
-        OutputDebugStringA("Failed to make the render context current.\n");
+        int32_t attributes[] = {
+            WGL_CONTEXT_MAJOR_VERSION_ARB, gGLInfo.major,
+            WGL_CONTEXT_MINOR_VERSION_ARB, gGLInfo.minor,
+            WGL_CONTEXT_PROFILE_MASK_ARB, WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
+            WGL_CONTEXT_FLAGS_ARB, WGL_CONTEXT_FORWARD_COMPATIBLE_BIT_ARB | WGL_CONTEXT_DEBUG_BIT_ARB,
+            0, 0
+        };
 
-        return 1;
+        renderContext = wglCreateContextAttribsARB(deviceContext, 0, attributes);
+
+        if (!renderContext)
+        {
+            OutputDebugStringA("OpenGL context creation failed.\n");
+
+            return 1;
+        }
+
+        if (!wglMakeCurrent(deviceContext, renderContext))
+        {
+            OutputDebugStringA("Failed to make the render context current.\n");
+
+            return 1;
+        }
     }
 
     return 0;
