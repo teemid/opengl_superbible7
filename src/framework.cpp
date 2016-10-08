@@ -114,9 +114,3 @@ namespace GLFramework
         return program;
     }
 }
-
-
-
-
-
-

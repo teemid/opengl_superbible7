@@ -2,6 +2,10 @@
 #include "platform/wgl.h"
 
 
+#define WGL_FUNC(type, name) type name;
+#include "Platform/wgl.def"
+
+
 namespace GLFramework
 {
     int CreateContext (HWND windowHandle, HDC deviceContext, int32_t major, int32_t minor)
@@ -178,6 +182,3 @@ namespace GLFramework
         return 0;
     }
 }
-
-#define WGL_FUNC(type, name) type name;
-#include "Platform/wgl.def"
