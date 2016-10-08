@@ -2,6 +2,8 @@
 
 #include "chapters.h"
 
+using namespace GLFramework;
+
 
 static GLchar * vertex_source = SHADER(450 core,
     void main (void)
@@ -35,10 +37,10 @@ static GLuint program;
 static GLuint vertex_array_object;
 
 
-void C36Init (void)
+void Chapter3_6::Init (void)
 {
-    GLuint vertex_shader       = CompileShader(GL_VERTEX_SHADER,          vertex_source);
-    GLuint fragment_shader     = CompileShader(GL_FRAGMENT_SHADER,        fragment_source);
+    GLuint vertex_shader   = CompileShader(GL_VERTEX_SHADER,   vertex_source);
+    GLuint fragment_shader = CompileShader(GL_FRAGMENT_SHADER, fragment_source);
 
     program = CreateProgram(2, vertex_shader, fragment_shader);
 
@@ -47,9 +49,9 @@ void C36Init (void)
 }
 
 
-void C36Render (double currentTime)
+void Chapter3_6::Render (double currentTime)
 {
-    const GLfloat color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    static const GLfloat color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     glClearBufferfv(GL_COLOR, 0, color);
 
@@ -59,7 +61,7 @@ void C36Render (double currentTime)
 }
 
 
-void C36Shutdown (void)
+void Chapter3_6::Shutdown (void)
 {
     glDeleteVertexArrays(1, &vertex_array_object);
     glDeleteProgram(program);

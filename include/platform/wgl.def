@@ -1,0 +1,8 @@
+#ifndef WGL_FUNC
+#define WGL_FUNC(type, name)
+#endif
+
+WGL_FUNC(PFNWGLGETEXTENSIONSSTRINGARBPROC,  wglGetExtensionsStringARB)
+WGL_FUNC(PFNWGLCREATECONTEXTATTRIBSARBPROC, wglCreateContextAttribsARB)
+
+#undef WGL_FUNC

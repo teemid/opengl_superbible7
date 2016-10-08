@@ -1,8 +1,10 @@
 #include <cmath>
 #include "chapters.h"
 
+using namespace GLFramework;
 
-void C22Render (double currentTime)
+
+void Chapter2_2::Render (double currentTime)
 {
     const GLfloat color[] = {
         (float)sin(currentTime) * 0.5f + 0.5f,

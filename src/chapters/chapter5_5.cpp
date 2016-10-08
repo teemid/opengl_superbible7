@@ -4,6 +4,8 @@
 #include "chapters.h"
 #include "vmath.h"
 
+using namespace GLFramework;
+
 
 static GLchar * vertex_source = SHADER(450 core,
     layout (location = 0) in vec4 position;
@@ -55,8 +57,7 @@ static const float vertices[] =
 };
 
 
-
-void C55Init (void)
+void Chapter5_5::Init (void)
 {
     GLuint vertex_shader       = CompileShader(GL_VERTEX_SHADER,          vertex_source);
     GLuint fragment_shader     = CompileShader(GL_FRAGMENT_SHADER,        fragment_source);
@@ -81,9 +82,9 @@ void C55Init (void)
 }
 
 
-void C55Render (double currentTime)
+void Chapter5_5::Render (double currentTime)
 {
-    const GLfloat color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+    static const GLfloat color[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
     glClearBufferfv(GL_COLOR, 0, color);
 
@@ -93,7 +94,7 @@ void C55Render (double currentTime)
 }
 
 
-void C55Shutdown (void)
+void Chapter5_5::Shutdown (void)
 {
     glDisableVertexArrayAttrib(vao, 0);
     glDisableVertexArrayAttrib(vao, 1);

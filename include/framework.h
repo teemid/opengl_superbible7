@@ -1,48 +1,30 @@
-#ifndef SBGL_PLATFORM_H
-#define SBGL_PLATFORM_H
+#ifndef SB_FRAMEWORK_H
+#define SB_FRAMEWORK_H
 
-#include <cstdlib>
-
-#include "glfunctions.h"
-#include "GL/wglext.h"
-
-#define ALLOCATE(type, size) (type)malloc(size)
-#define DEALLOCATE(ptr) free(ptr)
-
-#define SHADER(version, code) "#version " #version " \n" #code
+#include "gl.h"
 
 
-class Application
+namespace GLFramework
 {
-private:
-    GLuint program;
-public:
-    virtual void Init (void);
-    virtual void Render (double currentTime);
-    virtual void Shutdown (void);
-};
+    #define SHADER(version, code) "#version " #version " \n" #code
 
-typedef void (*InitFunc)     (void);
-typedef void (*RenderFunc)   (double currentTime);
-typedef void (*ShutdownFunc) (void);
+    class Application
+    {
+    public:
+        virtual void Init     (void);
+        virtual void Render   (double currentTime);
+        virtual void Shutdown (void);
+    protected:
+        GLuint program;
+    };
 
+    void GetCurrentGLVersion (int * major, int * minor);
+    int  GetExtensionCount (void);
+    bool IsExtensionSupported (const char * extension_name);
 
-extern InitFunc     Init;
-extern RenderFunc   Render;
-extern ShutdownFunc Shutdown;
-
-
-void DefaultInit (void);
-void DefaultRender (double currentTime);
-void DefaultShutdown (void);
-
-
-void    GetCurrentGLVersion (int * major, int * minor);
-int     GetExtensionCount (void);
-bool    IsExtensionSupported (const char * extension_name);
-
-GLuint CompileShader(GLenum type, const GLchar * source);
-GLuint CreateProgram(int shader_count, ...);
+    GLuint CompileShader(GLenum type, const GLchar * source);
+    GLuint CreateProgram(int shader_count, ...);
+}
 
 
 #endif

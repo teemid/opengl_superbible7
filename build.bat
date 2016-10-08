@@ -12,8 +12,6 @@ REM This is on top because it's the default action
 
     FOR /r src\ %%f IN ("*.cpp") DO cl %COMPILER_OPTIONS% /I %INCLUDE_DIR% "%%f"
 
-    cl %COMPILER_OPTIONS% /I %INCLUDE_DIR% main.cpp
-
     PUSHD build
 
     link %LIB_FILES% %LINKER_FLAGS% *.obj

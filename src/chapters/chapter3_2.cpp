@@ -2,6 +2,8 @@
 
 #include "chapters.h"
 
+using namespace GLFramework;
+
 
 static GLchar * vertex_source = SHADER(450 core,
     layout (location = 0) in vec4 offset;
@@ -40,8 +42,7 @@ static GLchar * fragment_source = SHADER(450 core,
 static GLuint program;
 static GLuint vertex_array_object;
 
-
-void C32Init (void)
+void Chapter3_2::Init (void)
 {
     GLuint vertex_shader = CompileShader(GL_VERTEX_SHADER, vertex_source);
     GLuint fragment_shader = CompileShader(GL_FRAGMENT_SHADER, fragment_source);
@@ -52,10 +53,9 @@ void C32Init (void)
     glBindVertexArray(vertex_array_object);
 }
 
-
-void C32Render (double currentTime)
+void Chapter3_2::Render (double currentTime)
 {
-    const GLfloat color[] = {
+    static const GLfloat color[] = {
         (float)sin(currentTime) * 0.5f + 0.5f,
         (float)cos(currentTime) * 0.5f + 0.5f,
         0.0f, 1.0f
@@ -79,8 +79,7 @@ void C32Render (double currentTime)
     glDrawArrays(GL_TRIANGLES, 0, 3);
 }
 
-
-void C32Shutdown (void)
+void Chapter3_2::Shutdown (void)
 {
     glDeleteVertexArrays(1, &vertex_array_object);
     glDeleteProgram(program);
